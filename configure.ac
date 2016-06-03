@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 AC_INIT(pgqd, 3.3)
-AC_CONFIG_SRCDIR(pgqd.c)
+AC_CONFIG_SRCDIR(src/pgqd.c)
 AC_CONFIG_HEADER(lib/usual/config.h)
 AC_PREREQ([2.59])
 
