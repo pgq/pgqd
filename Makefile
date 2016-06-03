@@ -6,9 +6,9 @@ PG_LIBDIR = $(shell $(PG_CONFIG) --libdir)
 
 bin_PROGRAMS = pgqd
 
-pgqd_SOURCES = pgqd.c maint.c ticker.c retry.c pgqd.h
+pgqd_SOURCES = src/pgqd.c src/maint.c src/ticker.c src/retry.c src/pgqd.h
 nodist_pgqd_SOURCES = pgqd.ini.h
-pgqd_CPPFLAGS = -I$(PG_INCDIR)
+pgqd_CPPFLAGS = -I$(PG_INCDIR) -Isrc -I.
 pgqd_LDFLAGS = -L$(PG_LIBDIR)
 pgqd_LIBS = -lpq -lm
 
@@ -30,5 +30,5 @@ install-conf:
 	$(INSTALL) -m 644 pgqd.ini '$(DESTDIR)$(docdir)/conf/pgqd.ini.templ'
 
 tags:
-	ctags *.[ch] ../../lib/usual/*.[ch]
+	ctags src/*.[ch] lib/usual/*.[ch]
 
