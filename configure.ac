@@ -24,7 +24,7 @@ AC_CHECK_FUNCS(unsetenv)
 
 dnl Optional use of libevent
 AC_SEARCH_LIBS(clock_gettime, rt)
-AC_USUAL_LIBEVENT_OPT
+AC_USUAL_LIBEVENT
 
 dnl Needed on SmartOS (Solaris)
 AC_SEARCH_LIBS([socket],[socket])
