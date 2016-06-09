@@ -1,0 +1,12 @@
+Source: pgqd
+Section: database
+Priority: extra
+Maintainer: Marko Kreen <markokr@gmail.com>
+Standards-Version: 3.6.2
+Build-Depends: debhelper (>= 9), python-docutils, libevent-dev (>= 2.0), libpq-dev
+
+Package: pgqd
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, adduser
+Description: Queue maintenance daemon for PgQ
+ .
