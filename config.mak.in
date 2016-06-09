@@ -16,9 +16,6 @@ bindir = @bindir@
 
 PG_CONFIG = @PG_CONFIG@
 
-# additional CPPFLAGS to pgxs modules
-PG_CPPFLAGS = $(filter -DHAVE%, @DEFS@)
-
 DESTDIR = 
 
 SED = @SED@
