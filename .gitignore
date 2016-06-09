@@ -1,0 +1,13 @@
+.objs
+install-sh
+pgqd
+pgqd.ini.h
+configure
+config.mak
+config.log
+config.guess
+config.status
+config.sub
+
+*.swp
+
