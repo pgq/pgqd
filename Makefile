@@ -1,6 +1,7 @@
 
-include config.mak
+-include config.mak
 
+PG_CONFIG ?= pg_config
 PG_INCDIR = $(shell $(PG_CONFIG) --includedir)
 PG_LIBDIR = $(shell $(PG_CONFIG) --libdir)
 
@@ -19,6 +20,8 @@ AM_FEATURES = libusual
 EXTRA_DIST = pgqd.ini
 CLEANFILES = pgqd.ini.h
 
+CONFIG_H = $(USUAL_DIR)/lib/usual/config.h
+
 include $(USUAL_DIR)/mk/antimake.mk
 
 pgqd.ini.h: pgqd.ini
@@ -32,3 +35,22 @@ install-conf:
 tags:
 	ctags src/*.[ch] lib/usual/*.[ch]
 
+configure:
+	./autogen.sh
+
+#config.mak: configure
+#	./configure
+
+deb: configure
+	debuild -us -uc -b
+
+*.o: $(CONFIG_H)
+
+$(CONFIG_H):
+	$(error Please run ./configure first)
+
+xclean: clean
+	rm -f config.mak config.guess config.sub config.log config.sub config.status
+	rm -f configure install-sh lib/usual/config.h
+	rm -rf debian/.debhelper debian/pgqd
+	rm -f debian/files debian/*-stamp debian/*.debhelper debian/*.log debian/*.substvars
