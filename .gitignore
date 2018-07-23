@@ -10,4 +10,10 @@ config.status
 config.sub
 
 *.swp
+tmp
 
+*.debhelper
+*.log
+*.substvars
+*-stamp
+debian/files
