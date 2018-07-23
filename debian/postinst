@@ -27,6 +27,9 @@ case "$1" in
 	    adduser --system --disabled-login --no-create-home --home /etc --ingroup postgres $PGQD_USER
 	fi
 	chown root:root /etc/pgqd.ini
+
+	mkdir -p /var/run/pgqd
+	chown pgqd:postgres /var/run/pgqd
     ;;
 esac
 

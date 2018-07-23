@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e
+
+if test "$1" = purge; then
+    rm -rf /var/run/pgqd
+fi
+
+#DEBHELPER#
+

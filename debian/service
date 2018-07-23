@@ -1,0 +1,11 @@
+[Unit]
+Description=PgQ maintenance daemon
+After=postgresql.service
+
+[Service]
+User=pgqd
+ExecStart=/usr/bin/pgqd -q /etc/pgqd.ini
+PIDFile=/var/run/pgqd/pgqd.pid
+
+[Install]
+WantedBy=multi-user.target

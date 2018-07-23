@@ -1,1 +1,2 @@
-debian/pgqd.ini etc/
+pgqd usr/bin
+debian/pgqd.ini etc
