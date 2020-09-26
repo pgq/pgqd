@@ -33,7 +33,7 @@ enum WType {
 	W_TIME
 };
 
-typedef void (*libev_cb)(int sock, short flags, void *arg);
+typedef void (*libev_cb)(evutil_socket_t sock, short flags, void *arg);
 
 struct PgSocket {
 	/* libevent state */
