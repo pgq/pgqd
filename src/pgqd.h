@@ -71,6 +71,7 @@ struct Stats {
 
 extern struct Config cf;
 extern struct Stats stats;
+extern struct event_base *ev_base;
 
 void launch_ticker(struct PgDatabase *db);
 void launch_maint(struct PgDatabase *db);

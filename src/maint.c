@@ -337,7 +337,11 @@ void launch_maint(struct PgDatabase *db)
 			db->maint_item_list = NULL;
 		}
 		cstr = make_connstr(db->name);
-		db->c_maint = pgs_create(cstr, maint_handler, db);
+		db->c_maint = pgs_create(cstr, maint_handler, db, ev_base);
+		if (!db->c_maint) {
+			log_error("pgs_create: %s", strerror(errno));
+			return;
+		}
 	}
 
 	if (!pgs_connection_valid(db->c_maint)) {
