@@ -21,8 +21,10 @@ jobs:
     strategy:
       matrix:
         test:
+          - {pgver: "11", os: "ubuntu-16.04"}
           - {pgver: "12", os: "ubuntu-18.04"}
-          - {pgver: "11", os: "macos-10.15"}
+          - {pgver: "13", os: "ubuntu-20.04"}
+          - {pgver: "12", os: "macos-10.15"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
@@ -156,7 +158,8 @@ jobs:
 
       - name: "Test"
         shell: bash
-        run: make citest
+        run: |
+          ./pgqd -V
 
       - name: "StopDB"
         shell: bash
