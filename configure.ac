@@ -22,9 +22,12 @@ AC_USUAL_FUNCTION_CHECK
 dnl Postres headers on Solaris define incompat unsetenv without that
 AC_CHECK_FUNCS(unsetenv)
 
-dnl Optional use of libevent
-AC_SEARCH_LIBS(clock_gettime, rt)
-AC_USUAL_LIBEVENT
+dnl Require libevent
+PKG_PROG_PKG_CONFIG
+PKG_CHECK_MODULES(LIBEVENT, [libevent >= 2.0], [
+CFLAGS="${CFLAGS} ${LIBEVENT_CFLAGS}"
+LIBS="${LIBS} ${LIBEVENT_LIBS}"
+], [AC_MSG_ERROR([pgqd requires libevent >= 2.0])])
 
 dnl Needed on SmartOS (Solaris)
 AC_SEARCH_LIBS([socket],[socket])

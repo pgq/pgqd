@@ -2,7 +2,8 @@
 
 #include <getopt.h>
 
-#include <usual/event.h>
+#include <event.h>
+
 #include <usual/string.h>
 #include <usual/signal.h>
 #include <usual/daemon.h>
