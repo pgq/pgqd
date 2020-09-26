@@ -67,9 +67,10 @@ jobs:
           echo "::add-path::/usr/local/opt/docutils/bin"
           echo "::add-path::/usr/local/opt/postgresql@${{matrix.test.pgver}}/bin"
           echo "::set-env name=SED::gsed"
-          find /usr/local/opt/docutils/
 
       - name: "Build"
+        env:
+          RST2MAN: rst2man.py
         run: |
           ./autogen.sh
           ./configure --prefix=${GITHUB_WORKSPACE}/testinstall
