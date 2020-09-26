@@ -16,7 +16,6 @@ on:
 jobs:
 
   test:
-    if: false
     name: ${{matrix.test.os}}, pg-${{matrix.test.pgver}}
     runs-on: ${{matrix.test.os}}
     strategy:
@@ -56,8 +55,9 @@ jobs:
           echo "::add-path::/usr/lib/postgresql/${{matrix.test.pgver}}/bin"
           echo "::set-env name=PGHOST::/tmp"
           echo "::set-env name=SED::sed"
+          echo "::set-env name=RST2MAN::rst2man"
 
-          dpkg -l postgres\* libpq\* bison\* flex\* gcc\* clang\* libllvm\*
+          dpkg -l postgres\* libpq\* gcc\* clang\* libevent\*
 
       - name: "InstallDB / Mac"
         if: ${{runner.os == 'macOS'}}
@@ -68,12 +68,13 @@ jobs:
           echo "::add-path::/usr/local/opt/docutils/bin"
           echo "::add-path::/usr/local/opt/postgresql@${{matrix.test.pgver}}/bin"
           echo "::set-env name=SED::gsed"
+          echo "::set-env name=RST2MAN::rst2man.py"
 
       - name: "Build"
         run: |
           ./autogen.sh
           ./configure --prefix=${GITHUB_WORKSPACE}/testinstall
-          make RST2MAN=rst2man.py
+          make RST2MAN=${{env.RST2MAN}}
           make install
 
       - name: "Install PgQ"
@@ -91,9 +92,7 @@ jobs:
           sleep 2
 
       - name: "Test"
-        run: |
-          ./pgqd -V
-          ./pgqd -h
+        run: make citest
 
       - name: "StopDB"
         run: |
@@ -106,7 +105,7 @@ jobs:
     strategy:
       matrix:
         test:
-          #- {os: "windows-2016", arch: i686, mingw: mingw32}
+          - {os: "windows-2016", arch: i686, mingw: mingw32}
           - {os: "windows-2019", arch: x86_64, mingw: mingw64}
     steps:
       - name: "Checkout"

@@ -61,3 +61,7 @@ xclean: clean
 pgqd.1: README.rst
 	$(RST2MAN) $< > $@
 
+citest:
+	./pgqd -V
+	./pgqd -h
+
