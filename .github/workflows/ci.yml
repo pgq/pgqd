@@ -62,7 +62,7 @@ jobs:
         if: ${{runner.os == 'macOS'}}
         run: |
           echo "::group::install"
-          brew install patchutils bison flex gnu-sed docutils libevent postgresql@${{matrix.test.pgver}}
+          brew install patchutils gnu-sed docutils libevent postgresql@${{matrix.test.pgver}} autoconf automake
           echo "::endgroup::"
           echo "::add-path::/usr/local/opt/flex/bin"
           echo "::add-path::/usr/local/opt/bison/bin"
@@ -122,15 +122,22 @@ jobs:
       - name: "InstallDB / mingw / ${{matrix.test.arch}}"
         shell: bash
         run: |
-          pacman -S --noconfirm --needed mingw-w64-${{matrix.test.arch}}-postgresql
+          pacman -S --noconfirm --needed mingw-w64-${{matrix.test.arch}}-postgresql autoconf automake
 
       - name: "Build"
         shell: bash
-        run: make
+        run: |
+          ./autogen.sh
+          ./configure --prefix=${GITHUB_WORKSPACE}/testinstall
+          make
+          make install
 
-      - name: "Install"
+      - name: "Install PgQ"
         shell: bash
-        run: make install
+        run: |
+          git clone https://github.com/pgq/pgq
+          make -C pgq
+          make -C pgq install
 
       - name: "StartDB"
         shell: bash
