@@ -94,16 +94,20 @@ static void handle_sigint(evutil_socket_t sock, short flags, void *arg)
 	got_sigint = 1;
 }
 
+#ifdef SIGHUP
 static void handle_sighup(evutil_socket_t sock, short flags, void *arg)
 {
 	log_info("Got SIGHUP, re-reading config");
 	load_config();
 	recheck_dbs();
 }
+#endif
 
 static void signal_setup(void)
 {
+#ifdef SIGHUP
 	static struct event ev_sighup;
+#endif
 	static struct event ev_sigterm;
 	static struct event ev_sigint;
 
