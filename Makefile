@@ -6,6 +6,7 @@ PG_INCDIR = $(shell $(PG_CONFIG) --includedir)
 PG_LIBDIR = $(shell $(PG_CONFIG) --libdir)
 
 bin_PROGRAMS = pgqd
+man_MANS = pgqd.1
 
 pgqd_SOURCES = src/pgqd.c src/maint.c src/ticker.c src/retry.c src/pgqd.h
 nodist_pgqd_SOURCES = pgqd.ini.h
@@ -53,4 +54,7 @@ $(CONFIG_H):
 xclean: clean
 	rm -f config.mak config.guess config.sub config.log config.sub config.status
 	rm -f configure install-sh lib/usual/config.h
+
+pgqd.1: README.rst
+	rst2man $< > $@
 
