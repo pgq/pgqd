@@ -80,21 +80,21 @@ static void load_config(void)
 	reset_logging();
 }
 
-static void handle_sigterm(int sock, short flags, void *arg)
+static void handle_sigterm(evutil_socket_t sock, short flags, void *arg)
 {
 	log_info("Got SIGTERM, fast exit");
 	/* pidfile cleanup happens via atexit() */
 	exit(1);
 }
 
-static void handle_sigint(int sock, short flags, void *arg)
+static void handle_sigint(evutil_socket_t sock, short flags, void *arg)
 {
 	log_info("Got SIGINT, shutting down");
 	/* notify main loop to exit */
 	got_sigint = 1;
 }
 
-static void handle_sighup(int sock, short flags, void *arg)
+static void handle_sighup(evutil_socket_t sock, short flags, void *arg)
 {
 	log_info("Got SIGHUP, re-reading config");
 	load_config();
@@ -276,7 +276,7 @@ static void recheck_dbs(void)
 
 static struct event stats_ev;
 
-static void stats_handler(int fd, short flags, void *arg)
+static void stats_handler(evutil_socket_t fd, short flags, void *arg)
 {
 	struct timeval tv = { cf.stats_period, 0 };
 
