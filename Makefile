@@ -22,7 +22,7 @@ USUAL_DIR = lib
 AM_FEATURES = libusual
 
 EXTRA_DIST = pgqd.ini autogen.sh configure.ac Makefile \
-	     README.rst NEWS.rst \
+	     README.rst NEWS.rst tests/test.sh \
 	     lib/find_modules.sh \
 	     lib/mk/antimake.mk lib/mk/amext-libusual.mk \
 	     lib/mk/install-sh lib/mk/std-autogen.sh \
@@ -62,4 +62,9 @@ xclean: clean
 
 pgqd.1: README.rst
 	$(RST2MAN) $< > $@
+
+citest: check
+
+check:
+	./tests/test.sh
 
