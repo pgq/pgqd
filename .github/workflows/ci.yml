@@ -124,7 +124,10 @@ jobs:
         shell: bash
         run: |
           pacman -Ss docutils
-          pacman -S --noconfirm --needed mingw-w64-${{matrix.test.arch}}-postgresql autoconf automake libevent python-docutils
+          pacman -S --noconfirm --needed \
+            mingw-w64-${{matrix.test.arch}}-postgresql \
+            mingw-w64-${{matrix.test.arch}}-python-docutils \
+            autoconf automake libevent
 
       - name: "Build"
         shell: bash
