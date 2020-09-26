@@ -9,7 +9,9 @@ RST2MAN = rst2man
 bin_PROGRAMS = pgqd
 man_MANS = pgqd.1
 
-pgqd_SOURCES = src/pgqd.c src/maint.c src/ticker.c src/retry.c src/pgqd.h
+pgqd_SOURCES = src/pgqd.c src/maint.c src/ticker.c src/retry.c \
+	       src/pgsocket.c src/pgsocket.h \
+	       src/pgqd.h
 nodist_pgqd_SOURCES = pgqd.ini.h
 pgqd_CPPFLAGS = -I$(PG_INCDIR) -Isrc -I.
 pgqd_LDFLAGS = -L$(PG_LIBDIR)
