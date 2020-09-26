@@ -45,9 +45,6 @@ configure:
 #config.mak: configure
 #	./configure
 
-deb: configure
-	debuild -us -uc -b
-
 *.o: $(CONFIG_H)
 
 $(CONFIG_H):
@@ -56,5 +53,4 @@ $(CONFIG_H):
 xclean: clean
 	rm -f config.mak config.guess config.sub config.log config.sub config.status
 	rm -f configure install-sh lib/usual/config.h
-	rm -rf debian/.debhelper debian/pgqd
-	rm -f debian/files debian/*-stamp debian/*.debhelper debian/*.log debian/*.substvars
+

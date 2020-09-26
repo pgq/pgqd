@@ -1,2 +1,0 @@
-# Pidfile dir
-d /var/run/pgqd 0755 pgqd postgres - -
