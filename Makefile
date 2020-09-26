@@ -66,4 +66,5 @@ pgqd.1: README.rst
 citest:
 	./pgqd -V
 	./pgqd -h
+	./tests/test.sh
 
