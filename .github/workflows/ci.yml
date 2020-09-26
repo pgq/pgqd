@@ -64,10 +64,10 @@ jobs:
           echo "::group::install"
           brew install patchutils gnu-sed docutils libevent postgresql@${{matrix.test.pgver}} autoconf automake
           echo "::endgroup::"
-          echo "::add-path::/usr/local/opt/flex/bin"
-          echo "::add-path::/usr/local/opt/bison/bin"
+          echo "::add-path::/usr/local/opt/docutils/bin"
           echo "::add-path::/usr/local/opt/postgresql@${{matrix.test.pgver}}/bin"
           echo "::set-env name=SED::gsed"
+          find /usr/local/opt/docutils/
 
       - name: "Build"
         run: |
