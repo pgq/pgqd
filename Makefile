@@ -4,6 +4,7 @@
 PG_CONFIG ?= pg_config
 PG_INCDIR = $(shell $(PG_CONFIG) --includedir)
 PG_LIBDIR = $(shell $(PG_CONFIG) --libdir)
+RST2MAN = rst2man
 
 bin_PROGRAMS = pgqd
 man_MANS = pgqd.1
@@ -58,5 +59,5 @@ xclean: clean
 	rm -f configure install-sh lib/usual/config.h
 
 pgqd.1: README.rst
-	rst2man $< > $@
+	$(RST2MAN) $< > $@
 
