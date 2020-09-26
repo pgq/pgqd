@@ -351,6 +351,9 @@ int main(int argc, char *argv[])
 		case 'h':
 			printf(usage_str);
 			return 0;
+		case 'V':
+			printf("%s version %s\n", PACKAGE_NAME, PACKAGE_VERSION);
+			return 0;
 #ifdef SIGHUP
 		case 'r':
 			sig = SIGHUP;
