@@ -106,7 +106,7 @@ jobs:
     strategy:
       matrix:
         test:
-          - {os: "windows-2016", arch: i686, mingw: mingw32}
+          #- {os: "windows-2016", arch: i686, mingw: mingw32}
           - {os: "windows-2019", arch: x86_64, mingw: mingw64}
     steps:
       - name: "Checkout"
@@ -124,7 +124,7 @@ jobs:
         shell: bash
         run: |
           pacman -Ss docutils
-          pacman -S --noconfirm --needed mingw-w64-${{matrix.test.arch}}-postgresql autoconf automake libevent python3-docutils
+          pacman -S --noconfirm --needed mingw-w64-${{matrix.test.arch}}-postgresql autoconf automake libevent python-docutils
 
       - name: "Build"
         shell: bash
