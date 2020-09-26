@@ -135,8 +135,13 @@ void launch_ticker(struct PgDatabase *db)
 {
 	log_debug("%s: launch_ticker", db->name);
 	if (!db->c_ticker) {
-		const char *cstr = make_connstr(db->name);
+		char *cstr = make_connstr(db->name);
+		if (!cstr) {
+			log_error("make_connstr: %s", strerror(errno));
+			return;
+		}
 		db->c_ticker = pgs_create(cstr, tick_handler, db, ev_base);
+		free(cstr);
 		if (!db->c_ticker) {
 			log_error("pgs_create: %s", strerror(errno));
 			return;

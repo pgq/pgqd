@@ -152,10 +152,25 @@ static void signal_setup(void)
 		fatal_perror("signal_add");
 }
 
-const char *make_connstr(const char *dbname)
+char *make_connstr(const char *dbname)
 {
-	static char buf[512];
-	snprintf(buf, sizeof(buf), "%s dbname=%s ", cf.base_connstr, dbname);
+	size_t buflen;
+	char *buf, *dst;
+	const char *src;
+
+	buflen = strlen(cf.base_connstr) + strlen(dbname) * 2 + 32;
+	buf = calloc(1, buflen);
+	if (!buf)
+		return NULL;
+	snprintf(buf, buflen, "%s dbname='", cf.base_connstr);
+	dst = buf + strlen(buf);
+	for (src = dbname; *src; src++) {
+		if (*src == '\'' || *src == '\\') {
+			*dst++ = '\\';
+		}
+		*dst++ = *src;
+	}
+	*dst = '\'';
 	return buf;
 }
 
@@ -242,8 +257,13 @@ static void detect_handler(struct PgSocket *sk, void *arg, enum PgEvent ev, PGre
 static void detect_dbs(void)
 {
 	if (!db_template) {
-		const char *cstr = make_connstr(cf.initial_database);
+		char *cstr = make_connstr(cf.initial_database);
+		if (!cstr) {
+			log_error("make_connstr: %s", strerror(errno));
+			return;
+		}
 		db_template = pgs_create(cstr, detect_handler, NULL, ev_base);
+		free(cstr);
 		if (!db_template) {
 			log_error("pgs_create: %s", strerror(errno));
 			return;
