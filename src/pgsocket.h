@@ -55,13 +55,10 @@ typedef void (*pgs_handler_f)(struct PgSocket *pgs, void *arg, enum PgEvent dbev
  * @param arg		extra context for callback
  * @return 		Initialized PgSocket structure
  */
-struct PgSocket *pgs_create(const char *connstr, pgs_handler_f fn, void *arg);
+struct PgSocket *pgs_create(const char *connstr, pgs_handler_f fn, void *arg, struct event_base *base);
 
 /** Release PgSocket */
 void pgs_free(struct PgSocket *db);
-
-/** Change the event base for PgSocket */
-void pgs_set_event_base(struct PgSocket *pgs, struct event_base *base);
 
 /** Set connection lifetime (in seconds) */
 void pgs_set_lifetime(struct PgSocket *pgs, double lifetime);

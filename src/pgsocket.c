@@ -22,7 +22,7 @@
 #include <usual/time.h>
 #include <usual/string.h>
 
-#include <event.h>
+#include <event2/event.h>
 
 #define MAX_QRY_ARGS 32
 
@@ -37,7 +37,7 @@ typedef void (*libev_cb)(evutil_socket_t sock, short flags, void *arg);
 
 struct PgSocket {
 	/* libevent state */
-	struct event ev;
+	struct event *ev;
 
 	/* track wait state */
 	enum WType wait_type;
@@ -77,12 +77,14 @@ static void send_event(struct PgSocket *db, enum PgEvent ev)
 /* wait socket event from libevent */
 static void wait_event(struct PgSocket *db, short ev, libev_cb fn)
 {
+	int err;
+
 	Assert(!db->wait_type);
 
-	event_set(&db->ev, PQsocket(db->con), ev, fn, db);
-	if (db->base)
-		event_base_set(db->base, &db->ev);
-	if (event_add(&db->ev, NULL) < 0)
+	err = event_assign(db->ev, db->base, PQsocket(db->con), ev, fn, db);
+	if (err < 0)
+		die("event_assign failed: %s", strerror(errno));
+	if (event_add(db->ev, NULL) < 0)
 		die("event_add failed: %s", strerror(errno));
 
 	db->wait_type = W_SOCK;
@@ -231,7 +233,7 @@ static void custom_notice_receiver(void *arg, const PGresult *res)
  * Public API
  */
 
-struct PgSocket *pgs_create(const char *connstr, pgs_handler_f fn, void *handler_arg)
+struct PgSocket *pgs_create(const char *connstr, pgs_handler_f fn, void *handler_arg, struct event_base *base)
 {
 	struct PgSocket *db;
 
@@ -239,8 +241,15 @@ struct PgSocket *pgs_create(const char *connstr, pgs_handler_f fn, void *handler
 	if (!db)
 		return NULL;
 
+	db->ev = calloc(1, event_get_struct_event_size());
+	if (!db->ev) {
+		free(db);
+		return NULL;
+	}
+
 	db->handler_func = fn;
 	db->handler_arg = handler_arg;
+	db->base = base;
 
 	db->connstr = strdup(connstr);
 	if (!db->connstr) {
@@ -248,11 +257,6 @@ struct PgSocket *pgs_create(const char *connstr, pgs_handler_f fn, void *handler
 		return NULL;
 	}
 	return db;
-}
-
-void pgs_set_event_base(struct PgSocket *pgs, struct event_base *base)
-{
-	pgs->base = base;
 }
 
 void pgs_set_lifetime(struct PgSocket *pgs, double lifetime)
@@ -285,7 +289,7 @@ void pgs_connect(struct PgSocket *db)
 void pgs_disconnect(struct PgSocket *db)
 {
 	if (db->wait_type) {
-		event_del(&db->ev);
+		event_del(db->ev);
 		db->wait_type = W_NONE;
 		db->reconnect = false;
 	}
@@ -304,6 +308,7 @@ void pgs_free(struct PgSocket *db)
 	if (db) {
 		pgs_disconnect(db);
 		free((void *)db->connstr);
+		free(db->ev);
 		free(db);
 	}
 }
@@ -325,10 +330,8 @@ void pgs_sleep(struct PgSocket *db, double timeout)
 	tv.tv_sec = timeout;
 	tv.tv_usec = (timeout - tv.tv_sec) * USEC;
 
-	evtimer_set(&db->ev, timeout_cb, db);
-	if (db->base)
-		event_base_set(db->base, &db->ev);
-	if (evtimer_add(&db->ev, &tv) < 0)
+	evtimer_assign(db->ev, db->base, timeout_cb, db);
+	if (evtimer_add(db->ev, &tv) < 0)
 		die("evtimer_add failed: %s", strerror(errno));
 
 	db->wait_type = W_TIME;
