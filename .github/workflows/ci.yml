@@ -22,7 +22,7 @@ jobs:
       matrix:
         test:
           - {pgver: "12", os: "ubuntu-18.04"}
-          - {pgver: "11", os: "macos-10.15"}
+          #- {pgver: "11", os: "macos-10.15"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
@@ -70,7 +70,7 @@ jobs:
           echo "::set-env name=SED::gsed"
 
       - name: "Build"
-        run:
+        run: |
           ./autogen.sh
           ./configure --prefix=${GITHUB_WORKSPACE}/testinstall
           make
