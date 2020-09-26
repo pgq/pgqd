@@ -302,7 +302,7 @@ void pgs_free(struct PgSocket *db)
 {
 	if (db) {
 		pgs_disconnect(db);
-		free(db->connstr);
+		free((void *)db->connstr);
 		free(db);
 	}
 }
