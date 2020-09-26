@@ -174,6 +174,30 @@ char *make_connstr(const char *dbname)
 	return buf;
 }
 
+static char *safe_dbname(const char *dbname)
+{
+	char *buf, *dst;
+	const char *src;
+	size_t buflen;
+
+	buflen = strlen(dbname) * 2 + 3;
+	buf = calloc(1, buflen);
+	if (!buf)
+		return NULL;
+	dst = buf;
+	*dst++ = '[';
+	for (src = dbname; *src; src++) {
+		if ((unsigned char)*src < ' ') {
+			*dst++ = '?';
+		} else {
+			*dst++ = *src;
+		}
+	}
+	*dst++ = ']';
+	*dst++ = '\0';
+	return buf;
+}
+
 static void launch_db(const char *dbname)
 {
 	struct PgDatabase *db;
@@ -190,7 +214,23 @@ static void launch_db(const char *dbname)
 
 	/* create new db entry */
 	db = calloc(1, sizeof(*db));
+	if (!db) {
+		log_error("calloc: %s", strerror(errno));
+		return;
+	}
 	db->name = strdup(dbname);
+	if (!db->name) {
+		log_error("strdup: %s", strerror(errno));
+		free(db);
+		return;
+	}
+	db->logname = safe_dbname(dbname);
+	if (!db->logname) {
+		log_error("safe_dbname: %s", strerror(errno));
+		free((void *)db->name);
+		free(db);
+		return;
+	}
 	list_init(&db->head);
 	statlist_init(&db->maint_op_list, "maint_op_list");
 	statlist_append(&database_list, &db->head);
@@ -202,13 +242,14 @@ static void launch_db(const char *dbname)
 static void drop_db(struct PgDatabase *db, bool log)
 {
 	if (log)
-		log_info("Unregister database: %s", db->name);
+		log_info("Unregister database: %s", db->logname);
 	statlist_remove(&database_list, &db->head);
 	pgs_free(db->c_ticker);
 	pgs_free(db->c_maint);
 	pgs_free(db->c_retry);
 	free_maint(db);
-	free((void*)db->name);
+	free((void *)db->logname);
+	free((void *)db->name);
 	free(db);
 }
 
