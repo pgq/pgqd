@@ -44,7 +44,7 @@ void free_maint(struct PgDatabase *db)
 
 static void close_maint(struct PgDatabase *db, double sleep_time)
 {
-	log_debug("%s: close_maint, %f", db->name, sleep_time);
+	log_debug("%s: close_maint, %f", db->logname, sleep_time);
 	db->maint_state = DB_CLOSED;
 	pgs_reconnect(db->c_maint, sleep_time);
 }
@@ -55,7 +55,7 @@ static void run_test_version(struct PgDatabase *db)
 			" where p.pronamespace = n.oid"
 			"   and p.proname = 'maint_operations'"
 			"   and n.nspname = 'pgq'";
-	log_debug("%s: %s", db->name, q);
+	log_debug("%s: %s", db->logname, q);
 	pgs_send_query_simple(db->c_maint, q);
 	db->maint_state = DB_MAINT_TEST_VERSION;
 }
@@ -104,7 +104,7 @@ failed:
 static void run_op_list(struct PgDatabase *db)
 {
 	const char *q = "select func_name, func_arg from pgq.maint_operations()";
-	log_debug("%s: %s", db->name, q);
+	log_debug("%s: %s", db->logname, q);
 	pgs_send_query_simple(db->c_maint, q);
 	db->maint_state = DB_MAINT_LOAD_OPS;
 }
@@ -152,7 +152,7 @@ repeat:
 		}
 		/* run as a statement */
 		snprintf(buf, sizeof(buf), "%s %s", op->func_name, namebuf);
-		log_debug("%s: [%s]", db->name, buf);
+		log_debug("%s: [%s]", db->logname, buf);
 		pgs_send_query_simple(db->c_maint, buf);
 		goto done;
 	}
@@ -164,11 +164,11 @@ repeat:
 	}
 	if (op->func_arg) {
 		snprintf(buf, sizeof(buf), "select %s($1)", namebuf);
-		log_debug("%s: [%s]", db->name, buf);
+		log_debug("%s: [%s]", db->logname, buf);
 		pgs_send_query_params(db->c_maint, buf, 1, op->func_arg);
 	} else {
 		snprintf(buf, sizeof(buf), "select %s()", namebuf);
-		log_debug("%s: [%s]", db->name, buf);
+		log_debug("%s: [%s]", db->logname, buf);
 		pgs_send_query_simple(db->c_maint, buf);
 	}
 done:
@@ -195,7 +195,7 @@ static bool fill_items(struct PgDatabase *db, PGresult *res)
 static void run_queue_list(struct PgDatabase *db)
 {
 	const char *q = "select queue_name from pgq.get_queue_info()";
-	log_debug("%s: %s", db->name, q);
+	log_debug("%s: %s", db->logname, q);
 	pgs_send_query_simple(db->c_maint, q);
 	db->maint_state = DB_MAINT_LOAD_QUEUES;
 }
@@ -203,7 +203,7 @@ static void run_queue_list(struct PgDatabase *db)
 static void run_vacuum_list(struct PgDatabase *db)
 {
 	const char *q = "select * from pgq.maint_tables_to_vacuum()";
-	log_debug("%s: %s", db->name, q);
+	log_debug("%s: %s", db->logname, q);
 	pgs_send_query_simple(db->c_maint, q);
 	db->maint_state = DB_MAINT_VACUUM_LIST;
 }
@@ -214,7 +214,7 @@ static void run_rotate_part1(struct PgDatabase *db)
 	const char *qname;
 	qname = strlist_pop(db->maint_item_list);
 	q = "select pgq.maint_rotate_tables_step1($1)";
-	log_debug("%s: %s [%s]", db->name, q, qname);
+	log_debug("%s: %s [%s]", db->logname, q, qname);
 	pgs_send_query_params(db->c_maint, q, 1, qname);
 	free((void *)qname);
 	db->maint_state = DB_MAINT_ROT1;
@@ -223,7 +223,7 @@ static void run_rotate_part1(struct PgDatabase *db)
 static void run_rotate_part2(struct PgDatabase *db)
 {
 	const char *q = "select pgq.maint_rotate_tables_step2()";
-	log_debug("%s: %s", db->name, q);
+	log_debug("%s: %s", db->logname, q);
 	pgs_send_query_simple(db->c_maint, q);
 	db->maint_state = DB_MAINT_ROT2;
 }
@@ -234,7 +234,7 @@ static void run_vacuum(struct PgDatabase *db)
 	const char *table;
 	table = strlist_pop(db->maint_item_list);
 	snprintf(qbuf, sizeof(qbuf), "vacuum %s", table);
-	log_debug("%s: %s", db->name, qbuf);
+	log_debug("%s: %s", db->logname, qbuf);
 	pgs_send_query_simple(db->c_maint, qbuf);
 	free((void *)table);
 	db->maint_state = DB_MAINT_DO_VACUUM;
@@ -246,7 +246,7 @@ static void maint_handler(struct PgSocket *s, void *arg, enum PgEvent ev, PGresu
 
 	switch (ev) {
 	case PGS_CONNECT_OK:
-		log_debug("%s: starting maintenance", db->name);
+		log_debug("%s: starting maintenance", db->logname);
 		if (db->has_maint_operations)
 			run_op_list(db);
 		else
@@ -304,14 +304,14 @@ static void maint_handler(struct PgSocket *s, void *arg, enum PgEvent ev, PGresu
 		}
 		break;
 	case PGS_TIMEOUT:
-		log_debug("%s: maint timeout", db->name);
+		log_debug("%s: maint timeout", db->logname);
 		if (!pgs_connection_valid(db->c_maint))
 			launch_maint(db);
 		else
 			run_queue_list(db);
 		break;
 	default:
-		log_warning("%s: default reconnect", db->name);
+		log_warning("%s: default reconnect", db->logname);
 		pgs_reconnect(db->c_maint, 60);
 		break;
 	}
@@ -329,7 +329,7 @@ void launch_maint(struct PgDatabase *db)
 {
 	char *cstr;
 
-	log_debug("%s: launch_maint", db->name);
+	log_debug("%s: launch_maint", db->logname);
 
 	if (!db->c_maint) {
 		if (db->maint_item_list) {
@@ -353,7 +353,7 @@ void launch_maint(struct PgDatabase *db)
 		pgs_connect(db->c_maint);
 	} else {
 		/* Already have a connection, what are we doing here */
-		log_error("%s: maint already initialized", db->name);
+		log_error("%s: maint already initialized", db->logname);
 		return;
 	}
 }

@@ -32,6 +32,7 @@ struct MaintOp;
 struct PgDatabase {
 	struct List head;
 	const char *name;
+	const char *logname;
 	struct PgSocket *c_ticker;
 	struct PgSocket *c_maint;
 	struct PgSocket *c_retry;
