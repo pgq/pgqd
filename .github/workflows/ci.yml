@@ -123,7 +123,8 @@ jobs:
       - name: "InstallDB / mingw / ${{matrix.test.arch}}"
         shell: bash
         run: |
-          pacman -S --noconfirm --needed mingw-w64-${{matrix.test.arch}}-postgresql autoconf automake libevent docutils
+          pacman -Ss docutils
+          pacman -S --noconfirm --needed mingw-w64-${{matrix.test.arch}}-postgresql autoconf automake libevent python3-docutils
 
       - name: "Build"
         shell: bash
