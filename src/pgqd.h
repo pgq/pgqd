@@ -79,7 +79,7 @@ void launch_retry(struct PgDatabase *db);
 
 void free_maint(struct PgDatabase *db);
 
-const char *make_connstr(const char *dbname);
+char *make_connstr(const char *dbname);
 
 #endif
 

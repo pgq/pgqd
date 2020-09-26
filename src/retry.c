@@ -56,13 +56,18 @@ static void retry_handler(struct PgSocket *s, void *arg, enum PgEvent ev, PGresu
 
 void launch_retry(struct PgDatabase *db)
 {
-	const char *cstr;
+	char *cstr;
 	if (db->c_retry) {
 		log_debug("%s: retry already initialized", db->name);
 	} else {
 		log_debug("%s: launch_retry", db->name);
 		cstr = make_connstr(db->name);
+		if (!cstr) {
+			log_error("make_connstr: %s", strerror(errno));
+			return;
+		}
 		db->c_retry = pgs_create(cstr, retry_handler, db, ev_base);
+		free(cstr);
 		if (!db->c_retry) {
 			log_error("pgs_create: %s", strerror(errno));
 			return;

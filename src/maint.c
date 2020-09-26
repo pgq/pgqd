@@ -327,7 +327,7 @@ mem_err:
 
 void launch_maint(struct PgDatabase *db)
 {
-	const char *cstr;
+	char *cstr;
 
 	log_debug("%s: launch_maint", db->name);
 
@@ -337,7 +337,12 @@ void launch_maint(struct PgDatabase *db)
 			db->maint_item_list = NULL;
 		}
 		cstr = make_connstr(db->name);
+		if (!cstr) {
+			log_error("make_connstr: %s", strerror(errno));
+			return;
+		}
 		db->c_maint = pgs_create(cstr, maint_handler, db, ev_base);
+		free(cstr);
 		if (!db->c_maint) {
 			log_error("pgs_create: %s", strerror(errno));
 			return;
