@@ -69,12 +69,10 @@ jobs:
           echo "::set-env name=SED::gsed"
 
       - name: "Build"
-        env:
-          RST2MAN: rst2man.py
         run: |
           ./autogen.sh
           ./configure --prefix=${GITHUB_WORKSPACE}/testinstall
-          make
+          make RST2MAN=rst2man.py
           make install
 
       - name: "Install PgQ"
