@@ -17,7 +17,11 @@ pgqd_EMBED_LIBUSUAL = 1
 USUAL_DIR = lib
 AM_FEATURES = libusual
 
-EXTRA_DIST = pgqd.ini
+EXTRA_DIST = pgqd.ini autogen.sh configure.ac Makefile \
+	     README.rst \
+	     lib/mk/antimake.mk lib/mk/amext-libusual.mk lib/find_modules.sh \
+	     config.mak.in lib/usual/config.h.in \
+	     configure config.sub config.guess install-sh
 CLEANFILES = pgqd.ini.h
 
 CONFIG_H = $(USUAL_DIR)/lib/usual/config.h
