@@ -16,12 +16,13 @@ on:
 jobs:
 
   test:
+    if: false
     name: ${{matrix.test.os}}, pg-${{matrix.test.pgver}}
     runs-on: ${{matrix.test.os}}
     strategy:
       matrix:
         test:
-          #- {pgver: "12", os: "ubuntu-18.04"}
+          - {pgver: "12", os: "ubuntu-18.04"}
           - {pgver: "11", os: "macos-10.15"}
     steps:
       - name: "Checkout"
@@ -100,7 +101,6 @@ jobs:
           rm -rf data log /tmp/.s.PGSQL*
 
   mingw:
-    if: false
     name: ${{matrix.test.os}}, ${{matrix.test.mingw}}
     runs-on: ${{matrix.test.os}}
     strategy:
@@ -111,6 +111,8 @@ jobs:
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
+        with:
+          submodules: true
 
       - name: "Setup MSYS"
         shell: cmd
@@ -121,7 +123,7 @@ jobs:
       - name: "InstallDB / mingw / ${{matrix.test.arch}}"
         shell: bash
         run: |
-          pacman -S --noconfirm --needed mingw-w64-${{matrix.test.arch}}-postgresql autoconf automake
+          pacman -S --noconfirm --needed mingw-w64-${{matrix.test.arch}}-postgresql autoconf automake libevent docutils
 
       - name: "Build"
         shell: bash
