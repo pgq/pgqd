@@ -50,6 +50,7 @@ static void retry_handler(struct PgSocket *s, void *arg, enum PgEvent ev, PGresu
 	default:
 		log_warning("%s: default reconnect", db->name);
 		pgs_reconnect(db->c_retry, 30);
+		break;
 	}
 }
 

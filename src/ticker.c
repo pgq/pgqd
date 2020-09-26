@@ -114,6 +114,7 @@ static void tick_handler(struct PgSocket *s, void *arg, enum PgEvent ev, PGresul
 		default:
 			log_warning("%s: bad state: %d", db->name, db->state);
 			close_ticker(db, 10);
+			break;
 		}
 		break;
 	case PGS_TIMEOUT:
@@ -126,6 +127,7 @@ static void tick_handler(struct PgSocket *s, void *arg, enum PgEvent ev, PGresul
 	default:
 		log_warning("%s: default timeout", db->name);
 		pgs_reconnect(db->c_ticker, 60);
+		break;
 	}
 }
 

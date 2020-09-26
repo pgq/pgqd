@@ -22,8 +22,8 @@ static struct MaintOp *next_op(struct PgDatabase *db)
 static void free_op(struct MaintOp *op)
 {
 	if (op) {
-		free(op->func_name);
-		free(op->func_arg);
+		free((void *)op->func_name);
+		free((void *)op->func_arg);
 		free(op);
 	}
 }
@@ -216,7 +216,7 @@ static void run_rotate_part1(struct PgDatabase *db)
 	q = "select pgq.maint_rotate_tables_step1($1)";
 	log_debug("%s: %s [%s]", db->name, q, qname);
 	pgs_send_query_params(db->c_maint, q, 1, qname);
-	free(qname);
+	free((void *)qname);
 	db->maint_state = DB_MAINT_ROT1;
 }
 
@@ -236,7 +236,7 @@ static void run_vacuum(struct PgDatabase *db)
 	snprintf(qbuf, sizeof(qbuf), "vacuum %s", table);
 	log_debug("%s: %s", db->name, qbuf);
 	pgs_send_query_simple(db->c_maint, qbuf);
-	free(table);
+	free((void *)table);
 	db->maint_state = DB_MAINT_DO_VACUUM;
 }
 
@@ -269,12 +269,14 @@ static void maint_handler(struct PgSocket *s, void *arg, enum PgEvent ev, PGresu
 		case DB_MAINT_LOAD_OPS:
 			if (!fill_op_list(db, res))
 				goto mem_err;
+			/* fallthrough */
 		case DB_MAINT_OP:
 			run_op(db, res);
 			break;
 		case DB_MAINT_LOAD_QUEUES:
 			if (!fill_items(db, res))
 				goto mem_err;
+			/* fallthrough */
 		case DB_MAINT_ROT1:
 			if (!strlist_empty(db->maint_item_list)) {
 				run_rotate_part1(db);
@@ -288,6 +290,7 @@ static void maint_handler(struct PgSocket *s, void *arg, enum PgEvent ev, PGresu
 		case DB_MAINT_VACUUM_LIST:
 			if (!fill_items(db, res))
 				goto mem_err;
+			/* fallthrough */
 		case DB_MAINT_DO_VACUUM:
 			if (!strlist_empty(db->maint_item_list)) {
 				run_vacuum(db);
@@ -297,6 +300,7 @@ static void maint_handler(struct PgSocket *s, void *arg, enum PgEvent ev, PGresu
 			break;
 		default:
 			fatal("bad state");
+			break;
 		}
 		break;
 	case PGS_TIMEOUT:
@@ -309,6 +313,7 @@ static void maint_handler(struct PgSocket *s, void *arg, enum PgEvent ev, PGresu
 	default:
 		log_warning("%s: default reconnect", db->name);
 		pgs_reconnect(db->c_maint, 60);
+		break;
 	}
 	return;
 mem_err:

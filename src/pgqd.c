@@ -180,7 +180,7 @@ static void drop_db(struct PgDatabase *db, bool log)
 	pgs_free(db->c_maint);
 	pgs_free(db->c_retry);
 	free_maint(db);
-	free(db->name);
+	free((void*)db->name);
 	free(db);
 }
 
@@ -222,6 +222,7 @@ static void detect_handler(struct PgSocket *sk, void *arg, enum PgEvent ev, PGre
 	default:
 		pgs_disconnect(sk);
 		pgs_sleep(sk, cf.check_period);
+		break;
 	}
 }
 
