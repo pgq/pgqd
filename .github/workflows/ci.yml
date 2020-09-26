@@ -21,8 +21,8 @@ jobs:
     strategy:
       matrix:
         test:
-          - {pgver: "12", os: "ubuntu-18.04"}
-          #- {pgver: "11", os: "macos-10.15"}
+          #- {pgver: "12", os: "ubuntu-18.04"}
+          - {pgver: "11", os: "macos-10.15"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
