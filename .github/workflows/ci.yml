@@ -1,0 +1,174 @@
+#
+# https://docs.github.com/en/actions
+# https://github.com/actions
+#
+# mac: https://brew.sh/
+# win: https://www.msys2.org/docs/package-management/
+# win: https://www.archlinux.org/pacman/pacman.8.html
+#
+
+name: CI
+
+on:
+  pull_request: {}
+  push: {}
+
+jobs:
+
+  test:
+    name: ${{matrix.test.os}}, pg-${{matrix.test.pgver}}
+    runs-on: ${{matrix.test.os}}
+    strategy:
+      matrix:
+        test:
+          - {pgver: "12", os: "ubuntu-18.04"}
+          - {pgver: "13", os: "ubuntu-20.04"}
+          - {pgver: "14", os: "ubuntu-22.04"}
+          - {pgver: "14", os: "macos-latest"}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: "InstallDB / Linux"
+        if: ${{runner.os == 'Linux'}}
+        run: |
+          echo "::group::apt-get-update"
+          echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main ${{matrix.test.pgver}}" \
+          | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo -nH apt-get -q update
+          echo "::endgroup::"
+
+          echo "::group::apt-get-install"
+
+          # disable new cluster creation
+          sudo -nH mkdir -p /etc/postgresql-common/createcluster.d
+          echo "create_main_cluster = false" | sudo -nH tee /etc/postgresql-common/createcluster.d/no-main.conf
+
+          sudo -nH apt-get -qyu install \
+            postgresql-${{matrix.test.pgver}} \
+            postgresql-server-dev-${{matrix.test.pgver}} \
+            libevent-dev python3-docutils \
+            libpq-dev patchutils
+          echo "::endgroup::"
+
+          # tune environment
+          echo "/usr/lib/postgresql/${{matrix.test.pgver}}/bin" >> $GITHUB_PATH
+
+          echo "PGHOST=/tmp" >> $GITHUB_ENV
+          echo "SED=sed" >> $GITHUB_ENV
+          echo "RST2MAN=rst2man" >> $GITHUB_ENV
+
+          dpkg -l postgres\* libpq\* gcc\* clang\* libevent\*
+
+      - name: "InstallDB / Mac"
+        if: ${{runner.os == 'macOS'}}
+        run: |
+          echo "::group::install"
+          brew install patchutils gnu-sed docutils libevent postgresql@${{matrix.test.pgver}} autoconf automake
+          echo "::endgroup::"
+          echo "/usr/local/opt/docutils/bin" >> $GITHUB_PATH
+          echo "/usr/local/opt/postgresql@${{matrix.test.pgver}}/bin" >> $GITHUB_PATH
+          echo "SED=gsed" >> $GITHUB_ENV
+          echo "RST2MAN=rst2man.py" >> $GITHUB_ENV
+
+      - name: "Build"
+        run: |
+          ./autogen.sh
+          ./configure --prefix=${GITHUB_WORKSPACE}/testinstall
+          make RST2MAN=${{env.RST2MAN}}
+          make install
+
+      - name: "Install PgQ"
+        run: |
+          git clone https://github.com/pgq/pgq
+          make -C pgq
+          sudo -nH bash -c "PATH='${PATH}' make -C pgq install"
+
+      - name: "StartDB"
+        run: |
+          mkdir -p log
+          LANG=C LC_ALL=C initdb --no-locale data
+          ${SED} -r -i -e "s,^[# ]*(unix_socket_directories).*,\\1='/tmp'," data/postgresql.conf
+          pg_ctl -D data -l log/pg.log start || { cat log/pg.log ; exit 1; }
+          sleep 2
+
+      - name: "Test"
+        run: make citest
+
+      - name: "StopDB"
+        run: |
+          pg_ctl -D data stop
+          rm -rf data log /tmp/.s.PGSQL*
+
+  mingw:
+    name: ${{matrix.test.os}}, ${{matrix.test.mingw}}
+    runs-on: ${{matrix.test.os}}
+    strategy:
+      matrix:
+        test:
+          - {os: "windows-2019", arch: i686, mingw: mingw32}
+          - {os: "windows-2019", arch: x86_64, mingw: mingw64}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: "Setup MSYS"
+        shell: cmd
+        run: |
+          echo C:\msys64\usr\bin>> %GITHUB_PATH%
+          echo C:\msys64\${{matrix.test.mingw}}\bin>> %GITHUB_PATH%
+
+      - name: "InstallDB / mingw / ${{matrix.test.arch}}"
+        shell: bash
+        run: |
+          # search package lists
+          pacman -Ss libevent
+          pacman -Ss autoconf
+          pacman -Ss automake
+          pacman -Ss libtool
+          # install
+          pacman -S --noconfirm --needed \
+            mingw-w64-${{matrix.test.arch}}-postgresql \
+            mingw-w64-${{matrix.test.arch}}-python-docutils \
+            mingw-w64-${{matrix.test.arch}}-libevent \
+            autoconf automake libtool
+          echo "PATH=$PATH"
+
+      - name: "Build"
+        shell: bash
+        run: |
+          ./autogen.sh
+          ./configure --prefix=${GITHUB_WORKSPACE}/testinstall
+          make
+          make install
+          ./pgqd -V
+
+      - name: "Install PgQ"
+        shell: bash
+        run: |
+          git clone https://github.com/pgq/pgq
+          make -C pgq
+          make -C pgq install
+
+      - name: "StartDB"
+        shell: bash
+        run: |
+          mkdir log
+          initdb.exe --no-locale -U postgres -D data
+          pg_ctl -D data -l log/pg.log start || { cat log/pg.log ; exit 1; }
+          sleep 3
+
+      - name: "Test"
+        if: false
+        shell: bash
+        run: make citest
+
+      - name: "StopDB"
+        shell: bash
+        run: |
+          pg_ctl -D data stop
+

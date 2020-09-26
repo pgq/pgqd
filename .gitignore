@@ -18,3 +18,4 @@ tmp
 *.substvars
 *-stamp
 debian/files
+tests/log

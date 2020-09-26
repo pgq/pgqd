@@ -1,0 +1,74 @@
+
+name: REL
+
+on:
+  push:
+    tags: ["v[0-9]*"]
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        id: checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build tarball
+        id: build
+        run: |
+          sudo -nH apt-get -u -y install pandoc autoconf automake libtool \
+                           libevent-dev libpq-dev patchutils python3-docutils
+          ./autogen.sh
+          ./configure
+          make checkver
+          make dist
+
+          PACKAGE=$(grep ^PACKAGE_NAME config.mak | sed 's/.*= *//')
+          VERSION=$(grep ^PACKAGE_VERSION config.mak | sed 's/.*= *//')
+          # default - gh:release
+          # PRERELEASE -  gh:prerelease
+          # DRAFT - gh:draft,prerelease
+          PRERELEASE="false"
+          DRAFT="false"
+          if echo "${VERSION}" | grep -qE '(a|b|rc)'; then PRERELEASE="true"; fi
+          if echo "${VERSION}" | grep -qE '(dev)'; then DRAFT="true"; PRERELEASE="true"; fi
+
+          test "${{github.ref}}" = "refs/tags/v${VERSION}" || { echo "ERR: tag mismatch"; exit 1; }
+          echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "TGZ=${PACKAGE}-${VERSION}.tar.gz" >> $GITHUB_ENV
+          echo "PRERELEASE=${PRERELEASE}" >> $GITHUB_ENV
+          echo "DRAFT=${DRAFT}" >> $GITHUB_ENV
+
+          pandoc --version
+          mkdir -p tmp
+          make -s shownote > tmp/note.md
+          cat tmp/note.md
+
+      - name: Create release
+        id: release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          tag_name: ${{github.ref}}
+          release_name: ${{github.event.repository.name}} v${{env.VERSION}}
+          body_path: tmp/note.md
+          draft: ${{env.DRAFT}}
+          prerelease: ${{env.PRERELEASE}}
+
+      - name: Upload source
+        id: upload
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          upload_url: ${{steps.release.outputs.upload_url}}
+          asset_path: ${{env.TGZ}}
+          asset_name: ${{env.TGZ}}
+          asset_content_type: application/x-gzip
+

@@ -22,7 +22,7 @@ USUAL_DIR = lib
 AM_FEATURES = libusual
 
 EXTRA_DIST = pgqd.ini autogen.sh configure.ac Makefile \
-	     README.rst NEWS.rst \
+	     README.rst NEWS.rst tests/test.sh \
 	     lib/find_modules.sh \
 	     lib/mk/antimake.mk lib/mk/amext-libusual.mk \
 	     lib/mk/install-sh lib/mk/std-autogen.sh \
@@ -62,4 +62,35 @@ xclean: clean
 
 pgqd.1: README.rst
 	$(RST2MAN) $< > $@
+
+citest: check
+
+check:
+	./tests/test.sh
+
+# PACKAGE_VERSION
+VERSION = $(shell ./configure --version | head -n 1 | sed -e 's/.* //')
+RXVERSION = $(shell echo $(VERSION) | sed 's/\./[.]/g')
+NEWS = NEWS.rst
+TAG = v$(VERSION)
+
+checkver:
+	@echo "Checking version"
+	@test -f configure || { echo "need ./configure"; exit 1; }
+	@grep -q '^pgqd $(RXVERSION)\b' $(NEWS) \
+	|| { echo "Version '$(VERSION)' not in $(NEWS)"; exit 1; }
+	@echo "Checking git repo"
+	@git diff --stat --exit-code || { echo "ERROR: Unclean repo"; exit 1; }
+
+release: checkver
+	git tag $(TAG)
+	git push github $(TAG):$(TAG)
+
+unrelease:
+	git push github :$(TAG)
+	git tag -d $(TAG)
+
+shownote:
+	awk -v VER="$(VERSION)" -f etc/note.awk $(NEWS) \
+	| pandoc -f rst -t gfm --wrap=none
 
