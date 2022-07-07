@@ -27,6 +27,9 @@ EXTRA_DIST = pgqd.ini autogen.sh configure.ac Makefile \
 	     lib/mk/antimake.mk lib/mk/amext-libusual.mk \
 	     lib/mk/install-sh lib/mk/std-autogen.sh \
 	     config.mak.in lib/usual/config.h.in \
+	     lib/m4/antimake.m4 \
+	     lib/m4/ax_pthread.m4 \
+	     lib/m4/usual.m4 \
 	     configure config.sub config.guess install-sh
 CLEANFILES = pgqd.ini.h
 
