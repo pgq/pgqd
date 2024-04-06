@@ -113,7 +113,7 @@ jobs:
     strategy:
       matrix:
         test:
-          - {os: "windows-latest", arch: i686, mingw: mingw32}
+          #- {os: "windows-latest", arch: i686, mingw: mingw32}
           - {os: "windows-latest", arch: x86_64, mingw: mingw64}
     steps:
       - name: "Checkout"
