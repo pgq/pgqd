@@ -149,7 +149,7 @@ jobs:
         run: |
           ./autogen.sh
           ./configure --prefix=${GITHUB_WORKSPACE}/testinstall || {
-            tail -n 200 config.log
+            tail -n 1200 config.log
             exit 1
           }
           make
