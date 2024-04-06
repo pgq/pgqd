@@ -144,6 +144,11 @@ jobs:
             mingw-w64-${{matrix.test.arch}}-libevent \
             mingw-w64-${{matrix.test.arch}}-pkgconf \
             autoconf automake libtool pkgconf
+          INCDIR=$(pg_config --includedir)
+          PG_CPPFLAGS="-I${INCDIR}"
+          #PG_CPPFLAGS="${PG_CPPFLAGS} -fstack-check=no -fno-stack-protector"
+          echo "PG_CPPFLAGS=${PG_CPPFLAGS}" >> $GITHUB_ENV
+          echo "PG_CPPFLAGS=${PG_CPPFLAGS}"
           echo "PATH=$PATH"
 
       - name: "Build"
