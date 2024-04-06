@@ -142,7 +142,7 @@ jobs:
             mingw-w64-${{matrix.test.arch}}-python-docutils \
             mingw-w64-${{matrix.test.arch}}-libevent \
             mingw-w64-${{matrix.test.arch}}-pkgconf \
-            autoconf automake libtool
+            autoconf automake libtool pkgconf
           echo "PATH=$PATH"
 
       - name: "Build"
