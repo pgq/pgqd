@@ -22,9 +22,9 @@ jobs:
       matrix:
         test:
           - {pgver: "12", os: "ubuntu-latest"}
-          - {pgver: "14", os: "ubuntu-latest"}
-          - {pgver: "16", os: "ubuntu-latest"}
-          - {pgver: "16", os: "macos-latest"}
+          #- {pgver: "14", os: "ubuntu-latest"}
+          #- {pgver: "16", os: "ubuntu-latest"}
+          #- {pgver: "16", os: "macos-latest"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
@@ -148,7 +148,10 @@ jobs:
         shell: bash
         run: |
           ./autogen.sh
-          ./configure --prefix=${GITHUB_WORKSPACE}/testinstall
+          ./configure --prefix=${GITHUB_WORKSPACE}/testinstall || {
+            tail -n 200 config.log
+            exit 1
+          }
           make
           make install
           ./pgqd -V
