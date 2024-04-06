@@ -141,7 +141,8 @@ jobs:
             mingw-w64-${{matrix.test.arch}}-postgresql \
             mingw-w64-${{matrix.test.arch}}-python-docutils \
             mingw-w64-${{matrix.test.arch}}-libevent \
-            autoconf automake libtool pkgconf
+            mingw-w64-${{matrix.test.arch}}-pkgconf \
+            autoconf automake libtool
           echo "PATH=$PATH"
 
       - name: "Build"
@@ -149,7 +150,7 @@ jobs:
         run: |
           ./autogen.sh
           ./configure --prefix=${GITHUB_WORKSPACE}/testinstall || {
-            tail -n 1200 config.log
+            tail -n 500 config.log
             exit 1
           }
           make
