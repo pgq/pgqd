@@ -21,13 +21,13 @@ jobs:
     strategy:
       matrix:
         test:
-          - {pgver: "12", os: "ubuntu-18.04"}
-          - {pgver: "13", os: "ubuntu-20.04"}
-          - {pgver: "14", os: "ubuntu-22.04"}
-          - {pgver: "14", os: "macos-latest"}
+          - {pgver: "12", os: "ubuntu-latest"}
+          - {pgver: "14", os: "ubuntu-latest"}
+          - {pgver: "16", os: "ubuntu-latest"}
+          - {pgver: "16", os: "macos-latest"}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -35,8 +35,13 @@ jobs:
         if: ${{runner.os == 'Linux'}}
         run: |
           echo "::group::apt-get-update"
+          sudo -nH apt-get -q update
+          sudo -nH apt-get -q install curl ca-certificates gnupg
+          curl https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+          | gpg --dearmor \
+          | sudo -nH tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg
           echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main ${{matrix.test.pgver}}" \
-          | sudo tee /etc/apt/sources.list.d/pgdg.list
+          | sudo -nH tee /etc/apt/sources.list.d/pgdg.list
           sudo -nH apt-get -q update
           echo "::endgroup::"
 
@@ -108,11 +113,11 @@ jobs:
     strategy:
       matrix:
         test:
-          - {os: "windows-2019", arch: i686, mingw: mingw32}
-          - {os: "windows-2019", arch: x86_64, mingw: mingw64}
+          - {os: "windows-latest", arch: i686, mingw: mingw32}
+          - {os: "windows-latest", arch: x86_64, mingw: mingw64}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -130,6 +135,7 @@ jobs:
           pacman -Ss autoconf
           pacman -Ss automake
           pacman -Ss libtool
+          pacman -Ss postgresql
           # install
           pacman -S --noconfirm --needed \
             mingw-w64-${{matrix.test.arch}}-postgresql \
