@@ -13,7 +13,7 @@ jobs:
 
       - name: Checkout code
         id: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -49,26 +49,13 @@ jobs:
           make -s shownote > tmp/note.md
           cat tmp/note.md
 
-      - name: Create release
-        id: release
-        uses: actions/create-release@v1
+      - name: "Create Github release"
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        with:
-          tag_name: ${{github.ref}}
-          release_name: ${{github.event.repository.name}} v${{env.VERSION}}
-          body_path: tmp/note.md
-          draft: ${{env.DRAFT}}
-          prerelease: ${{env.PRERELEASE}}
-
-      - name: Upload source
-        id: upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        with:
-          upload_url: ${{steps.release.outputs.upload_url}}
-          asset_path: ${{env.TGZ}}
-          asset_name: ${{env.TGZ}}
-          asset_content_type: application/x-gzip
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          title="${PACKAGE} v${VERSION}"
+          ghf="--notes-file=tmp/note.md"
+          if test "${DRAFT}" = "true"; then ghf="${ghf} --draft"; fi
+          if test "${PRERELEASE}" = "true"; then ghf="${ghf} --prerelease"; fi
+          gh release create "v${VERSION}" "${TGZ}" --title="${title}" ${ghf}
 
