@@ -38,7 +38,7 @@ CONFIG_H = $(USUAL_DIR)/lib/usual/config.h
 include $(USUAL_DIR)/mk/antimake.mk
 
 pgqd.ini.h: pgqd.ini
-	sed -e 's/.*/"&\\n"/' $< > $@
+	sed -f etc/quote-lines.sed $< > $@
 
 install: install-conf
 install-conf:
