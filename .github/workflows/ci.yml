@@ -148,12 +148,9 @@ jobs:
       - name: "Build"
         shell: bash
         run: |
-          env
+          workspace=$(echo "${GITHUB_WORKSPACE}" | sed -f etc/pathsep.sed)
           ./autogen.sh
-          ./configure --prefix=${GITHUB_WORKSPACE}/testinstall || {
-            tail -n 500 config.log
-            exit 1
-          }
+          ./configure --prefix="${workspace}/testinstall"
           make
           make install
           ./pgqd -V
