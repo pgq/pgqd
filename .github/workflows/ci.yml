@@ -138,6 +138,8 @@ jobs:
           pacman -Ss postgresql
           # install
           pacman -S --noconfirm --needed \
+            mingw-w64-${{matrix.test.arch}}-libxml2 \
+            mingw-w64-${{matrix.test.arch}}-libxslt \
             mingw-w64-${{matrix.test.arch}}-gettext \
             mingw-w64-${{matrix.test.arch}}-postgresql \
             mingw-w64-${{matrix.test.arch}}-python-docutils \
