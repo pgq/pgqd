@@ -81,7 +81,7 @@ jobs:
       - name: "Build"
         run: |
           ./autogen.sh
-          ./configure --prefix=${GITHUB_WORKSPACE}/testinstall
+          ./configure --prefix=./testinstall
           make RST2MAN=${{env.RST2MAN}}
           make install
 
