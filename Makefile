@@ -14,7 +14,7 @@ pgqd_SOURCES = src/pgqd.c src/maint.c src/ticker.c src/retry.c \
 	       src/pgqd.h
 nodist_pgqd_SOURCES = pgqd.ini.h
 pgqd_CPPFLAGS = -I$(PG_INCDIR) -Isrc -I.
-pgqd_LDFLAGS = -L$(PG_LIBDIR)
+pgqd_LDFLAGS = -L$(PG_LIBDIR) -Wl,-rpath,$(PG_LIBDIR)
 pgqd_LIBS = -lpq -lm
 
 pgqd_EMBED_LIBUSUAL = 1
